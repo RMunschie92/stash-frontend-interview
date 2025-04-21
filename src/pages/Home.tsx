@@ -5,7 +5,7 @@
 import { useOutletContext } from "react-router-dom";
 
 // Components
-import Search from "../components/Search";
+import Search from "../components/Search/Search";
 
 //------------------------------------------------------------------------------
 // Component
