@@ -2,13 +2,17 @@
 // Imports
 //------------------------------------------------------------------------------
 // Libraries
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 // Components
 import CalendarInput from "./CalendarInput";
 import DatesSection from "./DatesSection";
 import TravelersSection from "./TravelersSection";
+
+// Assets
+import iconCity from "../../assets/icon-city.png";
+import iconHotel from "../../assets/icon-hotel.png";
 
 // Types
 import { Hotel, ValuePiece } from "../../types";
@@ -25,14 +29,22 @@ const Search = (): React.JSX.Element => {
   // Get context data
   const hotelData = useOutletContext<Hotel[]>();
 
+  // Get memoized array of all hotel cities
+  const allCities = useMemo(() => {
+    return hotelData.map((hotel: Hotel) => hotel.city);
+  }, [hotelData]);
+
   // Local state
   const [adultsCount, setAdultsCount] = useState<number>(1);
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [checkInDate, setCheckInDate] = useState<ValuePiece>(null);
   const [checkOutDate, setCheckOutDate] = useState<ValuePiece>(null);
-  const [results, setResults] = useState<Hotel[]>([]);
+  const [citySearchMatches, setCitySearchMatches] = useState<string[]>([]);
+  const [forceSearchResultsClosed, setForceSearchResultsClosed] =
+    useState<boolean>(false);
+  const [searchResults, setSearchResults] = useState<Hotel[]>([]);
   const [searchInput, setSearchInput] = useState<string>("");
-  const [showCalendars, setShowCalendars] = useState<boolean>(true);
+  const [showCalendars, setShowCalendars] = useState<boolean>(false);
   const [showTravelersInputs, setShowTravelersInputs] =
     useState<boolean>(false);
 
@@ -67,12 +79,46 @@ const Search = (): React.JSX.Element => {
     // Update text input state
     setSearchInput(e.target.value);
 
-    // Filter data based on searchInput
-    const results = hotelData.filter((hotel: Hotel) => {
-      return hotel.city.toLowerCase().includes(e.target.value.toLowerCase());
+    // If search results was forced closed, reset state value to ensure it can
+    // be opened again
+    if (forceSearchResultsClosed) {
+      setForceSearchResultsClosed(false);
+    }
+
+    // Initialize cityMatches array to hold unique city matches.
+    // This will be used to show all hotels in a city if the user searches for a city name
+    // or a substring of a city name
+    const cityMatches: string[] = [];
+    // Look for substring match of city name in allCities memo
+    allCities.forEach((city: string) => {
+      // Add unique values into cityMatches array
+      if (
+        city.toLowerCase().includes(e.target.value.toLowerCase()) &&
+        !cityMatches.includes(city)
+      ) {
+        cityMatches.push(city);
+      }
     });
 
-    setResults(results);
+    // Filter data based on searchInput
+    const results = hotelData.filter((hotel: Hotel) => {
+      const nameMatch = hotel.name
+        .toLowerCase()
+        .includes(e.target.value.toLowerCase());
+
+      const cityMatch = hotel.city
+        .toLowerCase()
+        .includes(e.target.value.toLowerCase());
+
+      const comboMatch = `${hotel.name}, ${hotel.city}`
+        .toLowerCase()
+        .includes(e.target.value.toLowerCase());
+
+      return cityMatch || nameMatch || comboMatch;
+    });
+
+    setCitySearchMatches(cityMatches);
+    setSearchResults(results);
   };
 
   /**
@@ -92,9 +138,86 @@ const Search = (): React.JSX.Element => {
     setCheckOutDate(dates[1]);
   };
 
+  /**
+   * @function generateSearchResults
+   * @description Generates the search results dropdown based on the filtered hotel data.
+   * @returns {React.JSX.Element | null}
+   */
+  const generateSearchResults = (): React.JSX.Element | null => {
+    // If results were forced closed, if no results, or input is less than 3
+    // characters, return null
+    if (
+      forceSearchResultsClosed ||
+      !searchResults ||
+      searchResults.length === 0 ||
+      searchInput.length < 3
+    ) {
+      return null;
+    }
+
+    // First populate results with hotel data
+    const resultsToRender = searchResults.map((hotel: Hotel) => {
+      return (
+        <li key={hotel.id}>
+          <button
+            type="button"
+            className="w-full text-left p-2 hover:bg-gray-100 transition-colors duration-200"
+            onClick={() => {
+              setSearchInput(`${hotel.name}, ${hotel.city}`);
+              setForceSearchResultsClosed(true);
+            }}
+          >
+            <img
+              src={iconHotel}
+              alt=""
+              aria-hidden="true"
+              className="inline-block w-4 h-4 mr-2"
+            />
+            {hotel.name}, {hotel.city}
+          </button>
+        </li>
+      );
+    });
+
+    // Add city matches to results if they exist
+    if (citySearchMatches && citySearchMatches.length) {
+      for (let i = 0; i < citySearchMatches.length; i++) {
+        const cityMatch = citySearchMatches[i];
+
+        resultsToRender.push(
+          <li key={`city-match-${cityMatch.replace(/\s/g, "-")}`}>
+            <button
+              type="button"
+              className="w-full text-left p-2 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => {
+                setSearchInput("");
+                setForceSearchResultsClosed(true);
+              }}
+            >
+              <img
+                src={iconCity}
+                alt=""
+                aria-hidden="true"
+                className="inline-block w-4 h-4 mr-2"
+              />
+              {cityMatch}
+            </button>
+          </li>
+        );
+      }
+    }
+
+    // Return list of results
+    return (
+      <ul className="absolute top-14.5 left-0 w-full bg-white border border-gray-300 rounded-md shadow-lg p-4">
+        {resultsToRender}
+      </ul>
+    );
+  };
+
   return (
     <form className="flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 p-4">
-      <div className="search-container">
+      <div className="relative">
         <input
           className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12.5"
           type="text"
@@ -102,6 +225,7 @@ const Search = (): React.JSX.Element => {
           value={searchInput}
           onChange={(event) => handleSearch(event)}
         />
+        {generateSearchResults()}
       </div>
 
       <DatesSection
@@ -145,21 +269,6 @@ const Search = (): React.JSX.Element => {
       >
         Search
       </button>
-
-      {/* Temporary for use during component implementation */}
-      {/* <ul>
-        {results.map((hotel: Hotel) => {
-          return (
-            <li key={hotel.id}>
-              <img src={hotel.image} alt={hotel.name} />
-              <h2>{hotel.name}</h2>
-              <p>{hotel.city}</p>
-              <p>${hotel.daily_rate} per night</p>
-              {hotel.has_member_rate && <span>Member Rate Available</span>}
-            </li>
-          );
-        })}
-      </ul> */}
     </form>
   );
 };

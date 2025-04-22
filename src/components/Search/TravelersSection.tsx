@@ -134,11 +134,11 @@ const TravelersSection = ({
     }
 
     return (
-      <section className="absolute top-13 left-0 w-full bg-white border border-gray-300 rounded-md p-4 shadow-lg">
+      <section className="absolute top-14.5 left-0 w-full bg-white border border-gray-300 rounded-md p-4 shadow-lg">
         <div>
           <section className="flex width-full justify-between items-center mb-4">
             <label htmlFor="adults-input">Adults</label>
-            <div className="grid grid-cols-3 gap-2 p-1 w-[8rem]">
+            <div className="grid grid-cols-3 p-1 w-[8rem]">
               <input
                 id="adults-input"
                 className="order-2 text-center"
@@ -156,7 +156,7 @@ const TravelersSection = ({
 
           <section className="flex width-full justify-between items-center mb-4">
             <label htmlFor="children-input">Children</label>
-            <div className="grid grid-cols-3 gap-2 p-1 w-[8rem]">
+            <div className="grid grid-cols-3 p-1 w-[8rem]">
               <input
                 id="children-input"
                 className="order-2 text-center"
@@ -176,7 +176,7 @@ const TravelersSection = ({
   };
 
   return (
-    <div className="relative flex flex-col gap-2">
+    <div className="relative">
       <label className="absolute text-xs top-1 left-2">Travelers</label>
       <button
         type="button"
