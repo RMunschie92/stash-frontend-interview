@@ -9,3 +9,5 @@ export type Hotel = {
   has_member_rate: boolean;
   image: string;
 };
+
+export type ValuePiece = Date | null | undefined;

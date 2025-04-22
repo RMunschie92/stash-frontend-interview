@@ -7,25 +7,32 @@ import { useOutletContext } from "react-router-dom";
 
 // Components
 import CalendarInput from "./CalendarInput";
+import DatesSection from "./DatesSection";
+import TravelersSection from "./TravelersSection";
 
 // Types
-import { Hotel } from "../../types";
-
-type ValuePiece = Date | null | undefined;
+import { Hotel, ValuePiece } from "../../types";
 
 //------------------------------------------------------------------------------
 // Component
 //------------------------------------------------------------------------------
-const Search = () => {
+/**
+ * @component Search
+ * @description A component that renders a search form for hotels, including destination input, date selection, and travelers section.
+ * @returns {React.JSX.Element} - Returns the search form with inputs and results.
+ */
+const Search = (): React.JSX.Element => {
   // Get context data
   const hotelData = useOutletContext<Hotel[]>();
 
   // Local state
-  const [textInput, setTextInput] = useState<string>("");
-  const [results, setResults] = useState<Hotel[]>([]);
-  const [showCalendars, setShowCalendars] = useState<boolean>(false);
+  const [adultsCount, setAdultsCount] = useState<number>(1);
+  const [childrenCount, setChildrenCount] = useState<number>(0);
   const [checkInDate, setCheckInDate] = useState<ValuePiece>(null);
   const [checkOutDate, setCheckOutDate] = useState<ValuePiece>(null);
+  const [results, setResults] = useState<Hotel[]>([]);
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [showCalendars, setShowCalendars] = useState<boolean>(true);
   const [showTravelersInputs, setShowTravelersInputs] =
     useState<boolean>(false);
 
@@ -58,9 +65,9 @@ const Search = () => {
     e.preventDefault();
 
     // Update text input state
-    setTextInput(e.target.value);
+    setSearchInput(e.target.value);
 
-    // Filter data based on textInput
+    // Filter data based on searchInput
     const results = hotelData.filter((hotel: Hotel) => {
       return hotel.city.toLowerCase().includes(e.target.value.toLowerCase());
     });
@@ -85,88 +92,62 @@ const Search = () => {
     setCheckOutDate(dates[1]);
   };
 
-  /**
-   * @function formatDate
-   * @description Formats a date to a string in the format "MMM DD" (e.g., "Apr 23").
-   * @param {ValuePiece} date - The date to format.
-   * @returns {string}
-   */
-  const formatDate = (date: ValuePiece): string => {
-    if (!date) return "";
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-    });
-  };
-
   return (
-    <form className="flex gap-4">
+    <form className="flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 p-4">
       <div className="search-container">
         <input
-          className="border border-gray-300 rounded-md p-2 w-full"
+          className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12"
           type="text"
           placeholder="Destination..."
-          value={textInput}
+          value={searchInput}
           onChange={(event) => handleSearch(event)}
         />
       </div>
 
-      <div>
-        <label htmlFor="dates-input">Dates</label>
-        <input
-          type="text"
-          id="dates-input"
-          value={`${formatDate(checkInDate)} - ${formatDate(checkOutDate)}`}
-          className={"sr-only"}
-        />
-        <button
-          className="border border-gray-300 rounded-md p-2 w-full cursor-pointer"
-          onClick={(event): void => {
-            event.preventDefault();
-            setShowCalendars(!showCalendars);
-          }}
-          type="button"
-          aria-haspopup="true"
-          aria-expanded={showCalendars}
-        >
-          <span className="sr-only">
-            {showCalendars
-              ? "Collapse calendar for input"
-              : "Open calendar for input"}
-          </span>
-          <span aria-hidden="true">
-            {formatDate(checkInDate)} - {formatDate(checkOutDate)}
-          </span>
-        </button>
+      <DatesSection
+        checkInDate={checkInDate}
+        checkOutDate={checkOutDate}
+        showCalendars={showCalendars}
+        setShowCalendars={(val: boolean) => {
+          // If section is being opened, ensure travelers inputs are closed
+          if (val && showTravelersInputs) {
+            setShowTravelersInputs(false);
+          }
+          setShowCalendars(val);
+        }}
+      >
         <CalendarInput
           callback={handleDateChange}
           checkInDate={checkInDate}
           checkOutDate={checkOutDate}
           isOpen={showCalendars}
         />
-      </div>
+      </DatesSection>
 
-      <div>
-        <button
-          className="border border-gray-300 rounded-md p-2 w-full cursor-pointer"
-          type="button"
-          onClick={(event): void => {
-            event.preventDefault();
-            setShowTravelersInputs(!showTravelersInputs);
-          }}
-          aria-haspopup="true"
-          aria-expanded={showTravelersInputs}
-        >
-          Travelers
-        </button>
-      </div>
+      <TravelersSection
+        adultsCount={adultsCount}
+        childrenCount={childrenCount}
+        isOpen={showTravelersInputs}
+        setAdultsCount={setAdultsCount}
+        setChildrenCount={setChildrenCount}
+        setIsOpen={(val: boolean) => {
+          // If section is being opened, ensure calendars are closed
+          if (val && showCalendars) {
+            setShowCalendars(false);
+          }
+          setShowTravelersInputs(val);
+        }}
+      />
 
-      <button className="search-button" type="submit">
+      <button
+        className="h-12 w-full bg-indigo-400 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
+        type="submit"
+      >
         Search
       </button>
 
       {/* Temporary for use during component implementation */}
-      <ul>
+      {/* <ul>
         {results.map((hotel: Hotel) => {
           return (
             <li key={hotel.id}>
@@ -178,7 +159,7 @@ const Search = () => {
             </li>
           );
         })}
-      </ul>
+      </ul> */}
     </form>
   );
 };

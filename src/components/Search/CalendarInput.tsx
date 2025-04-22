@@ -4,13 +4,16 @@
 // Libraries
 import React, { useEffect, useRef } from "react";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
+
+// Styles
+import "./CalendarInput.css";
+
+// Types
+import { ValuePiece } from "../../types";
 
 //------------------------------------------------------------------------------
-// Types & Interfaces
+// Local Types & Interfaces
 //------------------------------------------------------------------------------
-type ValuePiece = Date | null | undefined;
-
 interface CalendarInputProps {
   isOpen: boolean;
   callback: (dates: ValuePiece | [ValuePiece, ValuePiece]) => void;
@@ -58,14 +61,16 @@ const CalendarInput = ({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col">
+    <div className="block relative">
+      <div className="absolute rounded top-2 left-0 z-2 size-fit border border-gray-300 shadow-lg">
         <Calendar
           inputRef={calendarRef}
           selectRange={true}
           onChange={callback}
           showDoubleView={true}
           value={[checkInDate, checkOutDate]}
+          prev2Label={null}
+          next2Label={null}
         />
       </div>
     </div>
