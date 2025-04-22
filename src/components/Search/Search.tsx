@@ -96,7 +96,7 @@ const Search = (): React.JSX.Element => {
     <form className="flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 p-4">
       <div className="search-container">
         <input
-          className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12"
+          className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12.5"
           type="text"
           placeholder="Destination..."
           value={searchInput}
@@ -140,7 +140,7 @@ const Search = (): React.JSX.Element => {
       />
 
       <button
-        className="h-12 w-full bg-indigo-400 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
+        className="h-12.5 w-full bg-indigo-400 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
         type="submit"
       >
         Search

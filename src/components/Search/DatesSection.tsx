@@ -95,7 +95,7 @@ const DatesSection = ({
         className={"sr-only"}
       />
       <button
-        className="border border-gray-400 rounded-md p-2 pt-4 h-12 w-full cursor-pointer"
+        className="border border-gray-400 rounded-md p-2 pt-4.25 h-12.5 w-full cursor-pointer"
         onClick={(event): void => {
           event.preventDefault();
           setShowCalendars(!showCalendars);
