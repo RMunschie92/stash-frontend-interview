@@ -47,7 +47,7 @@ const Search = (): React.JSX.Element => {
     });
   }, [hotelData]);
 
-  // Local state
+  // Local state (includes state passed down to child components)
   const [adultsCount, setAdultsCount] = useState<number>(1);
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [checkInDate, setCheckInDate] = useState<ValuePiece>(null);
@@ -98,8 +98,8 @@ const Search = (): React.JSX.Element => {
   const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
 
-    // If search input is empty, do not submit
-    if (searchInput.trim() === "") {
+    // If no hotel or city is selected, show error
+    if (!searchHotelSelection && !searchCitySelection) {
       setShowSearchError(true);
       return;
     }
@@ -183,25 +183,6 @@ const Search = (): React.JSX.Element => {
     // Finally update state with results and city matches
     setCitySearchMatches(cityMatches);
     setSearchResults(results);
-  };
-
-  /**
-   *
-   */
-  const handleSearchBlur = (): void => {
-    if (searchInput.length < 3) {
-      return;
-    }
-    console.log(searchResults);
-    // If user has not selected a hotel or city, check to see if search input
-    // value is a city match
-    if (!searchHotelSelection && !searchCitySelection) {
-      const cityMatch: CityData | undefined = allCities.find(
-        (city: CityData) => city.lowerCase === searchInput.trim().toLowerCase()
-      );
-
-      console.log("cityMatch", cityMatch);
-    }
   };
 
   /**
@@ -291,9 +272,13 @@ const Search = (): React.JSX.Element => {
         }
 
         resultsToRender.push(
-          <li key={`city-match-${cityMatch.lowerCase.replace(/\s/g, "-")}`}>
+          <li
+            key={`city-match-${cityMatch.lowerCase.replace(/\s/g, "-")}`}
+            role="presentation"
+          >
             <button
               type="button"
+              role="option"
               className="w-full text-left p-2 hover:bg-gray-100 transition-colors duration-200"
               onClick={() => {
                 setSearchInput(cityMatch.name);
@@ -318,7 +303,12 @@ const Search = (): React.JSX.Element => {
 
     // Return list of results
     return (
-      <ul className="absolute top-14.5 left-0 w-full bg-white border border-gray-300 rounded-md shadow-lg p-4">
+      <ul
+        id="search-results-list"
+        className="absolute top-14.5 left-0 w-full bg-white border border-gray-300 rounded-md shadow-lg p-4"
+        role="listbox"
+        aria-label="Search result options"
+      >
         {resultsToRender}
       </ul>
     );
@@ -366,6 +356,11 @@ const Search = (): React.JSX.Element => {
           className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12.5"
           type="text"
           placeholder="Destination..."
+          autoComplete="off"
+          aria-autocomplete="list"
+          role="combobox"
+          aria-expanded={!forceSearchResultsClosed && searchInput.length >= 3}
+          aria-controls="search-results-list"
           value={searchInput}
           onChange={(event) => handleSearch(event)}
           onFocus={() => {
@@ -383,8 +378,9 @@ const Search = (): React.JSX.Element => {
         showCalendars={showCalendars}
         setShowCalendars={(val: boolean) => {
           // If section is being opened, ensure travelers inputs are closed
-          if (val && showTravelersInputs) {
+          if (val) {
             setShowTravelersInputs(false);
+            setForceSearchResultsClosed(true);
           }
           setShowCalendars(val);
         }}
@@ -405,8 +401,9 @@ const Search = (): React.JSX.Element => {
         setChildrenCount={setChildrenCount}
         setIsOpen={(val: boolean) => {
           // If section is being opened, ensure calendars are closed
-          if (val && showCalendars) {
+          if (val) {
             setShowCalendars(false);
+            setForceSearchResultsClosed(true);
           }
           setShowTravelersInputs(val);
         }}
