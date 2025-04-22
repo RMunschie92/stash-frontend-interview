@@ -58,6 +58,30 @@ const DatesSection = ({
     });
   };
 
+  /**
+   * @function generatePseudoLabel
+   * @description Generates a pseudo label for the date range based on check-in and check-out dates.
+   * @returns {string}
+   */
+  const generatePseudoLabel = (): string => {
+    // Return empty string if dates are not provided
+    if (!checkInDate || !checkOutDate) return "";
+
+    // Calculate the number of nights between check-in and check-out dates
+    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+    const numOfNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    // Format the number of nights for display
+    const numOfNightsCopy = `(${numOfNights} night${
+      numOfNights > 1 ? "s" : ""
+    })`;
+
+    // Return the formatted date range with the number of nights
+    return `${formatDate(checkInDate)} - ${formatDate(
+      checkOutDate
+    )} ${numOfNightsCopy}`.trim();
+  };
+
   return (
     <div className="relative flex flex-col">
       <label className="absolute text-xs top-1 left-2" htmlFor="dates-input">
@@ -86,7 +110,7 @@ const DatesSection = ({
             : "Open calendar for input"}
         </span>
         <span aria-hidden="true" className="block w-fit">
-          {formatDate(checkInDate)} - {formatDate(checkOutDate)}
+          {generatePseudoLabel()}
         </span>
       </button>
       {children}
