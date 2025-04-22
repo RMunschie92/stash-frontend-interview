@@ -45,7 +45,7 @@ const router = createBrowserRouter([
         element: <Microsite />,
       },
       {
-        path: "travel/:city/:adults/:children",
+        path: "travel/:city",
         element: <CityResults />,
       },
     ],

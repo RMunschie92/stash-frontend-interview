@@ -2,7 +2,7 @@
 // Imports
 //------------------------------------------------------------------------------
 // Libraries
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 // Components
@@ -17,6 +17,17 @@ import iconHotel from "../../assets/icon-hotel.png";
 // Types
 import { Hotel, ValuePiece } from "../../types";
 
+// Utils
+import formatDate from "../../utils/formatDate";
+
+//------------------------------------------------------------------------------
+// Local Types & Interfaces
+//------------------------------------------------------------------------------
+type CityData = {
+  name: string;
+  lowerCase: string;
+};
+
 //------------------------------------------------------------------------------
 // Component
 //------------------------------------------------------------------------------
@@ -30,8 +41,10 @@ const Search = (): React.JSX.Element => {
   const hotelData = useOutletContext<Hotel[]>();
 
   // Get memoized array of all hotel cities
-  const allCities = useMemo(() => {
-    return hotelData.map((hotel: Hotel) => hotel.city);
+  const allCities: CityData[] = useMemo(() => {
+    return hotelData.map((hotel: Hotel): CityData => {
+      return { name: hotel.city, lowerCase: hotel.city.toLowerCase() };
+    });
   }, [hotelData]);
 
   // Local state
@@ -39,14 +52,24 @@ const Search = (): React.JSX.Element => {
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [checkInDate, setCheckInDate] = useState<ValuePiece>(null);
   const [checkOutDate, setCheckOutDate] = useState<ValuePiece>(null);
-  const [citySearchMatches, setCitySearchMatches] = useState<string[]>([]);
+  const [citySearchMatches, setCitySearchMatches] = useState<CityData[]>([]);
   const [forceSearchResultsClosed, setForceSearchResultsClosed] =
     useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<Hotel[]>([]);
+  const [searchHotelSelection, setSearchHotelSelection] =
+    useState<Hotel | null>(null);
+  const [searchCitySelection, setSearchCitySelection] = useState<string | null>(
+    null
+  );
   const [searchInput, setSearchInput] = useState<string>("");
+  const [showSearchError, setShowSearchError] = useState<boolean>(false);
   const [showCalendars, setShowCalendars] = useState<boolean>(false);
   const [showTravelersInputs, setShowTravelersInputs] =
     useState<boolean>(false);
+
+  // Initialize refs as needed
+  const searchErrorRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * Side effect:
@@ -55,16 +78,52 @@ const Search = (): React.JSX.Element => {
    */
   useEffect(() => {
     // Get date of upcoming Friday
-    const today = new Date();
-    const nextFriday = new Date(today);
+    const today: Date = new Date();
+    const nextFriday: Date = new Date(today);
     nextFriday.setDate(today.getDate() + ((5 - today.getDay() + 7) % 7)); // 5 is Friday, adjust to next Friday if today is not Friday
 
-    const nextSunday = new Date(nextFriday);
+    const nextSunday: Date = new Date(nextFriday);
     nextSunday.setDate(nextFriday.getDate() + 2); // Set to Sunday (2 days after Friday)
 
     setCheckInDate(nextFriday);
     setCheckOutDate(nextSunday);
   }, []);
+
+  /**
+   * @function handleSubmit
+   * @description Handles the form submission event for searching hotels.
+   * @param {React.MouseEvent<HTMLButtonElement>} event - The click event from the submit button.
+   * @returns {void}
+   */
+  const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+
+    // If search input is empty, do not submit
+    if (searchInput.trim() === "") {
+      setShowSearchError(true);
+      return;
+    }
+
+    // If user select a hotel, redirect to the microsite for that hotel
+    if (searchHotelSelection) {
+      const { city, name } = searchHotelSelection;
+      // Redirect to the microsite for the selected hotel
+      // "hotel/:city/:hotelName"
+      window.location.href = `/hotel/${city}/${name.replace(/\s/g, "-")}`;
+      return;
+    }
+
+    // Format check in and check out dates to be MM-DD-YYYY
+    let formattedCheckIn: string = formatDate(checkInDate, true);
+    let formattedCheckOut: string = formatDate(checkOutDate, true);
+    // Replace spaces and commas with dashes for URL compatibility
+    formattedCheckIn = formattedCheckIn.replace(/\s/g, "-").replace(/,/g, "");
+    formattedCheckOut = formattedCheckOut.replace(/\s/g, "-").replace(/,/g, "");
+
+    // Otherwise, redirect to the city results page
+    // "travel/:city/:adults/:children",
+    window.location.href = `/travel/${searchCitySelection}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
+  };
 
   /**
    * @function handleSearch
@@ -88,37 +147,61 @@ const Search = (): React.JSX.Element => {
     // Initialize cityMatches array to hold unique city matches.
     // This will be used to show all hotels in a city if the user searches for a city name
     // or a substring of a city name
-    const cityMatches: string[] = [];
+    const cityMatches: CityData[] = [];
+    // Create a map to track unique city names to prevent duplicate entries
+    // This is used to ensure that we do not add the same city multiple times
+    // to the cityMatches array. Necessary since we can't compare objects directly.
+    const cityMatchNames = new Map<string, boolean>();
     // Look for substring match of city name in allCities memo
-    allCities.forEach((city: string) => {
-      // Add unique values into cityMatches array
+    allCities.forEach((city: CityData) => {
       if (
-        city.toLowerCase().includes(e.target.value.toLowerCase()) &&
-        !cityMatches.includes(city)
+        city.lowerCase.includes(e.target.value.toLowerCase()) &&
+        !cityMatchNames.has(city.name)
       ) {
+        cityMatchNames.set(city.name, true);
         cityMatches.push(city);
       }
     });
 
     // Filter data based on searchInput
-    const results = hotelData.filter((hotel: Hotel) => {
-      const nameMatch = hotel.name
+    const results = hotelData.filter((hotel: Hotel): boolean => {
+      const nameMatch: boolean = hotel.name
         .toLowerCase()
         .includes(e.target.value.toLowerCase());
 
-      const cityMatch = hotel.city
+      const cityMatch: boolean = hotel.city
         .toLowerCase()
         .includes(e.target.value.toLowerCase());
 
-      const comboMatch = `${hotel.name}, ${hotel.city}`
+      const comboMatch: boolean = `${hotel.name}, ${hotel.city}`
         .toLowerCase()
         .includes(e.target.value.toLowerCase());
 
       return cityMatch || nameMatch || comboMatch;
     });
 
+    // Finally update state with results and city matches
     setCitySearchMatches(cityMatches);
     setSearchResults(results);
+  };
+
+  /**
+   *
+   */
+  const handleSearchBlur = (): void => {
+    if (searchInput.length < 3) {
+      return;
+    }
+    console.log(searchResults);
+    // If user has not selected a hotel or city, check to see if search input
+    // value is a city match
+    if (!searchHotelSelection && !searchCitySelection) {
+      const cityMatch: CityData | undefined = allCities.find(
+        (city: CityData) => city.lowerCase === searchInput.trim().toLowerCase()
+      );
+
+      console.log("cityMatch", cityMatch);
+    }
   };
 
   /**
@@ -155,44 +238,70 @@ const Search = (): React.JSX.Element => {
       return null;
     }
 
+    // Set boolean to determine if there are city matches based on search input
+    const hasCityMatches: boolean =
+      citySearchMatches && citySearchMatches.length > 0;
+
     // First populate results with hotel data
-    const resultsToRender = searchResults.map((hotel: Hotel) => {
-      return (
-        <li key={hotel.id}>
-          <button
-            type="button"
-            className="w-full text-left p-2 hover:bg-gray-100 transition-colors duration-200"
-            onClick={() => {
-              setSearchInput(`${hotel.name}, ${hotel.city}`);
-              setForceSearchResultsClosed(true);
-            }}
-          >
-            <img
-              src={iconHotel}
-              alt=""
-              aria-hidden="true"
-              className="inline-block w-4 h-4 mr-2"
-            />
-            {hotel.name}, {hotel.city}
-          </button>
-        </li>
-      );
-    });
+    const resultsToRender: React.JSX.Element[] = searchResults.map(
+      (hotel: Hotel, index: number) => {
+        const dynamicAttributes: { [key: string]: () => void } = {};
+        if (!hasCityMatches && index === searchResults.length - 1) {
+          // If this is the last item in the list and there are no city matches,
+          // add a blur handler to the last item to close the results when it loses focus
+          dynamicAttributes["onBlur"] = () => setForceSearchResultsClosed(true);
+        }
 
-    // Add city matches to results if they exist
-    if (citySearchMatches && citySearchMatches.length) {
-      for (let i = 0; i < citySearchMatches.length; i++) {
-        const cityMatch = citySearchMatches[i];
-
-        resultsToRender.push(
-          <li key={`city-match-${cityMatch.replace(/\s/g, "-")}`}>
+        return (
+          <li key={hotel.id}>
             <button
               type="button"
               className="w-full text-left p-2 hover:bg-gray-100 transition-colors duration-200"
               onClick={() => {
-                setSearchInput("");
+                setSearchInput(`${hotel.name}, ${hotel.city}`);
+                setSearchHotelSelection(hotel);
+                setSearchCitySelection(null);
                 setForceSearchResultsClosed(true);
               }}
+              {...dynamicAttributes}
+            >
+              <img
+                src={iconHotel}
+                alt=""
+                aria-hidden="true"
+                className="inline-block w-4 h-4 mr-2"
+              />
+              {hotel.name}, {hotel.city}
+            </button>
+          </li>
+        );
+      }
+    );
+
+    // Add city matches to results if they exist
+    if (hasCityMatches) {
+      for (let i = 0; i < citySearchMatches.length; i++) {
+        const cityMatch: CityData = citySearchMatches[i];
+
+        const dynamicAttributes: { [key: string]: () => void } = {};
+        if (i === citySearchMatches.length - 1) {
+          // If this is the last item in the list  add a blur handler to the last
+          // item to close the results when it loses focus
+          dynamicAttributes["onBlur"] = () => setForceSearchResultsClosed(true);
+        }
+
+        resultsToRender.push(
+          <li key={`city-match-${cityMatch.lowerCase.replace(/\s/g, "-")}`}>
+            <button
+              type="button"
+              className="w-full text-left p-2 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => {
+                setSearchInput(cityMatch.name);
+                setSearchHotelSelection(null);
+                setSearchCitySelection(cityMatch.name);
+                setForceSearchResultsClosed(true);
+              }}
+              {...dynamicAttributes}
             >
               <img
                 src={iconCity}
@@ -200,7 +309,7 @@ const Search = (): React.JSX.Element => {
                 aria-hidden="true"
                 className="inline-block w-4 h-4 mr-2"
               />
-              {cityMatch}
+              {cityMatch.name}
             </button>
           </li>
         );
@@ -215,15 +324,55 @@ const Search = (): React.JSX.Element => {
     );
   };
 
+  /**
+   * @function generateNoSearchError
+   * @description Generates an error message when user tries to submit form while no destination is selected.
+   * @returns {React.JSX.Element | null}
+   */
+  const generateNoSearchError = (): React.JSX.Element | null => {
+    if (!showSearchError) {
+      return null;
+    }
+
+    return (
+      <div ref={searchErrorRef} className="col-span-4 grid grid-cols-subgrid">
+        <div className="flex justify-between col-start-1 md:col-end-3 lg:col-end-2 bg-red-300 p-4 rounded-md mt-2">
+          <p>Please select a destination.</p>
+          <button
+            className="underline"
+            onClick={() => {
+              setShowSearchError(false);
+              if (searchInputRef.current) {
+                searchInputRef.current.focus();
+              }
+            }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <form className="flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 p-4">
+    <form className="relative flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 p-4">
+      {generateNoSearchError()}
+
       <div className="relative">
+        <label className="sr-only" htmlFor="search-input">
+          Search for a hotel or city
+        </label>
         <input
           className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12.5"
           type="text"
           placeholder="Destination..."
           value={searchInput}
           onChange={(event) => handleSearch(event)}
+          onFocus={() => {
+            setShowTravelersInputs(false);
+            setShowCalendars(false);
+          }}
+          ref={searchInputRef}
         />
         {generateSearchResults()}
       </div>
@@ -266,6 +415,7 @@ const Search = (): React.JSX.Element => {
       <button
         className="h-12.5 w-full bg-indigo-400 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
         type="submit"
+        onClick={(event) => handleSubmit(event)}
       >
         Search
       </button>
