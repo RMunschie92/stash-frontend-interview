@@ -30,7 +30,7 @@ type DatesSectionProps = {
  * @param {React.ReactNode} props.children - The children to render inside the section.
  * @param {boolean} [props.showCalendars=false] - Flag to determine if the calendars should be shown.
  * @param {Function} props.setShowCalendars - Callback function to set the visibility of the calendars.
- * @returns
+ * @returns {React.JSX.Element | null} - The rendered component or null if children are not provided.
  */
 const DatesSection = ({
   checkInDate,
@@ -38,7 +38,7 @@ const DatesSection = ({
   children,
   showCalendars = false,
   setShowCalendars,
-}: DatesSectionProps) => {
+}: DatesSectionProps): React.JSX.Element | null => {
   // Don't render if children prop is not provided
   if (!children) {
     return null;
@@ -108,7 +108,7 @@ const DatesSection = ({
             ? "Collapse calendar for input"
             : "Open calendar for input"}
         </span>
-        <span aria-hidden="true" className="block w-fit">
+        <span aria-hidden="true" className="block w-fit whitespace-nowrap">
           {generatePseudoLabel()}
         </span>
       </button>
