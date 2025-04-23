@@ -58,6 +58,15 @@ const router = createBrowserRouter([
 function App() {
   return (
     <div>
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <a href="/" className="block w-fit px-2">
+            <h1 className="text-2xl font-bold text-orange-600 ">
+              Independent Hotel Booking
+            </h1>
+          </a>
+        </div>
+      </header>
       <main className="font-mulish p-4 pt-6 lg:max-w-[1000px] mx-auto">
         <RouterProvider router={router} />
       </main>
