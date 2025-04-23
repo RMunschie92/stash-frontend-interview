@@ -75,30 +75,38 @@ const CityResults = () => {
       dailyRateClass += " text-sm line-through";
     }
 
+    // Construct URL to hotel's microsite page ("hotel/:city/:hotelName")
+    const hotelUrl: string = `/hotel/${hotel.city.replace(
+      /\s/g,
+      "-"
+    )}/${hotel.name.replace(/\s/g, "-")}`;
+
     return (
-      <li
-        key={hotel.id}
-        className="flex flex-col sm:grid grid-cols-[1fr_2fr] mb-4 gap-2 sm:gap-3 border border-gray-300 rounded-lg"
-      >
-        <img
-          src={hotel.image}
-          alt={hotel.name}
-          className="block w-full h-58 lg:h-52 object-cover rounded-t-md sm:rounded-t-none sm:rounded-l-md"
-        />
-        <div className="flex flex-col justify-between gap-2 sm:pr-1">
-          <div className="px-2 sm:px-0 sm:pt-2">
-            <h2 className="text-xl text-orange-600 font-semibold">
-              {hotel.name}
-            </h2>
-            <p>{hotel.city}</p>
+      <li key={hotel.id}>
+        <a
+          href={hotelUrl}
+          className="flex flex-col sm:grid grid-cols-[1fr_2fr] mb-4 gap-2 sm:gap-3 border border-gray-300 rounded-lg"
+        >
+          <img
+            src={hotel.image}
+            alt={hotel.name}
+            className="block w-full h-58 lg:h-52 object-cover rounded-t-md sm:rounded-t-none sm:rounded-l-md"
+          />
+          <div className="flex flex-col justify-between gap-2 sm:pr-1">
+            <div className="px-2 sm:px-0 sm:pt-2">
+              <h2 className="text-xl text-orange-600 font-semibold">
+                {hotel.name}
+              </h2>
+              <p>{hotel.city}</p>
+            </div>
+            <div className="flex flex-col gap-2 px-2 sm:pl-0 mt-auto pb-2 sm:items-end">
+              <p className={dailyRateClass}>
+                ${hotel.daily_rate.toFixed(2)} avg. nightly price
+              </p>
+              {ratePrice}
+            </div>
           </div>
-          <div className="flex flex-col gap-2 px-2 sm:pl-0 mt-auto pb-2 sm:items-end">
-            <p className={dailyRateClass}>
-              ${hotel.daily_rate.toFixed(2)} avg. nightly price
-            </p>
-            {ratePrice}
-          </div>
-        </div>
+        </a>
       </li>
     );
   };
