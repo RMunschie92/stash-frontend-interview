@@ -88,13 +88,15 @@ const TravelersSection = ({
     return (
       <button
         type="button"
-        className={`flex justify-center items-center leading-none bg-indigo-400 text-white rounded-md p-2 size-8 ${orderClassVal} hover:bg-indigo-500 transition-colors duration-300 disabled:bg-gray-400`}
+        className={`flex justify-center items-center bg-indigo-600 text-white rounded-md size-8 ${orderClassVal} hover:bg-indigo-500 transition-colors duration-300 disabled:bg-gray-400`}
         onClick={() => setter(newCount)}
         aria-label={ariaLabel}
         disabled={disabled}
         aria-disabled={disabled}
       >
-        <span>{decrement ? "-" : "+"}</span>
+        <span className="block mt-[-.5px] h-fit text-sm/1">
+          {decrement ? "-" : "+"}
+        </span>
       </button>
     );
   };
@@ -149,8 +151,8 @@ const TravelersSection = ({
                 min="1"
                 max="4"
               />
-              {generateButton(false, false, setAdultsCount)}
               {generateButton(true, false, setAdultsCount)}
+              {generateButton(false, false, setAdultsCount)}
             </div>
           </section>
 
