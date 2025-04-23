@@ -345,7 +345,7 @@ const Search = (): React.JSX.Element => {
   };
 
   return (
-    <form className="relative flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 p-4">
+    <form className="relative flex flex-col md:grid grid-cols-[1fr_1fr_1fr_.5fr] gap-4 mb-8">
       {generateNoSearchError()}
 
       <div className="relative">
@@ -410,7 +410,7 @@ const Search = (): React.JSX.Element => {
       />
 
       <button
-        className="h-12.5 w-full bg-indigo-400 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
+        className="h-12.5 w-full bg-indigo-600 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
         type="submit"
         onClick={(event) => handleSubmit(event)}
       >

@@ -1,9 +1,6 @@
 //------------------------------------------------------------------------------
 // Imports
 //------------------------------------------------------------------------------
-// Libraries
-import { useOutletContext } from "react-router-dom";
-
 // Components
 import Search from "../components/Search/Search";
 
