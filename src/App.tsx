@@ -56,7 +56,13 @@ const router = createBrowserRouter([
 // Component
 //------------------------------------------------------------------------------
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <div>
+      <main className="font-mulish p-4 pt-6 lg:max-w-[1000px] mx-auto">
+        <RouterProvider router={router} />
+      </main>
+    </div>
+  );
 }
 
 export default App;

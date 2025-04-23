@@ -9,10 +9,10 @@ import Search from "../components/Search/Search";
 //------------------------------------------------------------------------------
 const Index = () => {
   return (
-    <main>
+    <>
       <Search />
       <h1>Hotels page</h1>
-    </main>
+    </>
   );
 };
 

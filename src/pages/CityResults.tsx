@@ -3,14 +3,18 @@
 //------------------------------------------------------------------------------
 // Libraries
 import React from "react";
-import { useLocation, useOutletContext } from "react-router-dom";
+import {
+  useLocation,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
 
 // Components
 import PageTitle from "../components/PageTitle/PageTitle";
 import Search from "../components/Search/Search";
 
 // Types
-import { Hotel } from "../types";
+import { Hotel, ValuePiece } from "../types";
 
 //------------------------------------------------------------------------------
 // Component
@@ -22,6 +26,33 @@ const CityResults = () => {
   // Get the current location and extract the city from the URL
   const location = useLocation();
   const city = location.pathname.split("/").pop();
+
+  const [searchParams] = useSearchParams();
+
+  /**
+   * @function convertToDate
+   * @description Converts a string value to a Date object or returns null if the value is invalid
+   * @param {string | null} value - The string value to convert to a Date object
+   * @returns {ValuePiece} - Returns a Date object if valid, otherwise returns null
+   */
+  const convertToDate = (
+    value: string | null,
+    isCheckout: boolean = false
+  ): ValuePiece => {
+    if (!value) return null;
+
+    const date = new Date(value);
+    if (isNaN(date.getTime())) {
+      return null; // Invalid date
+    }
+
+    // Set to 23:59:59 for checkout dates
+    if (isCheckout) {
+      date.setHours(23, 59, 59);
+    }
+
+    return date;
+  };
 
   /**
    * @function generateListItem
@@ -72,29 +103,48 @@ const CityResults = () => {
     );
   };
 
+  // Get & convert values via searchParams
+  const searchCheckIn: ValuePiece | null = convertToDate(
+    searchParams.get("checkin")
+  );
+  const searchCheckOut: ValuePiece | null = convertToDate(
+    searchParams.get("checkout"),
+    true
+  );
+  const searchAdults: number = searchParams.has("adults")
+    ? Number(searchParams.get("adults"))
+    : 1;
+  const searchChildren: number = searchParams.has("children")
+    ? Number(searchParams.get("children"))
+    : 0;
+
   return (
     <>
       <PageTitle title={`Hotels in ${city}`} />
-      <main className="font-mulish p-4 pt-6 lg:max-w-[1000px] mx-auto">
-        <Search />
+      <Search
+        initialCityValue={city}
+        initialAdultsCount={searchAdults}
+        initialChildrenCount={searchChildren}
+        initialCheckInDate={searchCheckIn}
+        initialCheckOutDate={searchCheckOut}
+      />
 
-        <h1 className="text-2xl font-light mb-2">
-          The Best Independent Hotels in{" "}
-          <span className="font-bold text-orange-600">{city}</span>
-        </h1>
+      <h1 className="text-2xl font-light mb-2">
+        The Best Independent Hotels in{" "}
+        <span className="font-bold text-orange-600">{city}</span>
+      </h1>
 
-        <p className="text-xl font-light">
-          Earn the most points at the best independent hotels
-        </p>
+      <p className="text-xl font-light">
+        Earn the most points at the best independent hotels
+      </p>
 
-        <ul className="flex flex-col sm:grid grid-cols-1 gap-4 mt-4">
-          {hotelData.map((hotel: Hotel) => {
-            if (city === hotel.city) {
-              return generateListItem(hotel);
-            }
-          })}
-        </ul>
-      </main>
+      <ul className="flex flex-col sm:grid grid-cols-1 gap-4 mt-4">
+        {hotelData.map((hotel: Hotel) => {
+          if (city === hotel.city) {
+            return generateListItem(hotel);
+          }
+        })}
+      </ul>
     </>
   );
 };

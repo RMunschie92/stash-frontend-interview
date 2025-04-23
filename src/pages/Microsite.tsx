@@ -9,12 +9,10 @@ import Search from "../components/Search/Search";
 //------------------------------------------------------------------------------
 const MicrositeLayout = () => {
   return (
-    <div>
-      <main className="flex-grow">
-        <Search />
-        <h1>Microsite</h1>
-      </main>
-    </div>
+    <>
+      <Search />
+      <h1>Microsite</h1>
+    </>
   );
 };
 
