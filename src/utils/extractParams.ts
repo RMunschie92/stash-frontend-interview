@@ -12,9 +12,16 @@ interface Result {
   searchAdults: number;
   searchChildren: number;
 }
+
 //------------------------------------------------------------------------------
-// Hook
+// Main
 //------------------------------------------------------------------------------
+/**
+ * @function extractParams
+ * @description Extracts parameters from the URL search parameters and pathname.
+ * @param {URLSearchParams} params - The URL search parameters to extract values from
+ * @returns {Result} - An object containing the extracted parameters:
+ */
 const extractParams = (params: URLSearchParams): Result => {
   const res: Result = {
     pathCity: null,

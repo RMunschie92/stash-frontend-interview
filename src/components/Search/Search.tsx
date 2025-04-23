@@ -18,8 +18,10 @@ import iconHotel from "../../assets/icon-hotel.png";
 import { Hotel, ValuePiece } from "../../types";
 
 // Utils
-import formatDate from "../../utils/formatDate";
+import capitalizeWordsInString from "../../utils/capitalizeWordsInString";
 import extractParams from "../../utils/extractParams";
+import formatDate from "../../utils/formatDate";
+import formatStringForUrl from "../../utils/formatStringForUrl";
 
 //------------------------------------------------------------------------------
 // Local Types & Interfaces
@@ -84,20 +86,25 @@ const Search = (): React.JSX.Element => {
     setIsFirstRender(false);
   }, []);
 
+  /**
+   * Executes on component mount and when `hotelData` or `searchParams` change.
+   * - It extracts parameters from the search params and sets initial values for search input, hotel selection, city selection, check-in date, check-out date, adults count, and children count.
+   * - It checks if the `pathCity` or `pathHotelName` parameters are present and updates the respective state variables accordingly.
+   * - It also sets default values for check-in and check-out dates, adults, and children based on the extracted parameters.
+   */
   useEffect(() => {
     // If this is the first render, set initial values based on parsedParams
     if (isFirstRender) {
       const viaParams = extractParams(searchParams);
-      console.log(viaParams);
 
       if (viaParams.pathCity) {
-        setSearchInput(viaParams.pathCity);
+        setSearchInput(capitalizeWordsInString(viaParams.pathCity));
         setSearchCitySelection(viaParams.pathCity);
       }
 
       if (viaParams.pathHotelName) {
         // If a hotel name is provided, set the search input to the hotel name
-        setSearchInput(viaParams.pathHotelName.replace(/-/g, " "));
+        setSearchInput(capitalizeWordsInString(viaParams.pathHotelName));
         // Find the hotel in the hotel data
         const selectedHotel: Hotel | undefined = hotelData.find(
           (hotel: Hotel) =>
@@ -139,22 +146,27 @@ const Search = (): React.JSX.Element => {
     let formattedCheckIn: string = formatDate(checkInDate, true);
     let formattedCheckOut: string = formatDate(checkOutDate, true);
     // Replace spaces and commas with dashes for URL compatibility
-    formattedCheckIn = formattedCheckIn.replace(/\s/g, "-").replace(/,/g, "");
-    formattedCheckOut = formattedCheckOut.replace(/\s/g, "-").replace(/,/g, "");
+    formattedCheckIn = formatStringForUrl(formattedCheckIn);
+    formattedCheckOut = formatStringForUrl(formattedCheckOut);
 
     // If user select a hotel, redirect to the microsite for that hotel
     if (searchHotelSelection) {
       const { city, name } = searchHotelSelection;
-      const formattedName: string = name.replace(/\s/g, "-").replace(/,/g, "");
+      const formattedCity: string = formatStringForUrl(city);
+      const formattedName: string = formatStringForUrl(name);
       // Redirect to the microsite for the selected hotel
       // "hotel/:city/:hotelName?:checkin&:checkout&:adults&:children"
-      window.location.href = `/hotel/${city}/${formattedName}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
+      window.location.href = `/hotel/${formattedCity}/${formattedName}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
       return;
     }
 
+    const formattedSearchCity: string = formatStringForUrl(
+      searchCitySelection || ""
+    );
+
     // Otherwise, redirect to the city results page
     // "travel/:city?:checkin&:checkout&:adults&:children",
-    window.location.href = `/travel/${searchCitySelection}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
+    window.location.href = `/travel/${formattedSearchCity}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
   };
 
   /**

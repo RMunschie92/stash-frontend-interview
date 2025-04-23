@@ -16,6 +16,10 @@ import Search from "../components/Search/Search";
 // Types
 import { Hotel } from "../types";
 
+// Utils
+import decodeUrlString from "../utils/decodeUrlString";
+import formatStringForUrl from "../utils/formatStringForUrl";
+
 //------------------------------------------------------------------------------
 // Component
 //------------------------------------------------------------------------------
@@ -25,7 +29,10 @@ const CityResults = () => {
 
   // Get the current location and extract the city from the URL
   const location = useLocation();
-  const city = location.pathname.split("/").pop();
+  let city: string = location.pathname.split("/").pop() || "unknown";
+
+  // Decode the city name from the URL
+  city = decodeUrlString(city);
 
   // Get search parameters from the URL
   const [searchParams] = useSearchParams();
@@ -53,8 +60,8 @@ const CityResults = () => {
 
     // Construct URL to hotel's microsite page
     // "hotel/:city/:hotelName?:checkin&:checkout&:adults&:children"
-    const formattedCity = hotel.city.replace(/\s/g, "-").replace(/,/g, "");
-    const formattedName = hotel.name.replace(/\s/g, "-").replace(/,/g, "");
+    const formattedCity: string = formatStringForUrl(city);
+    const formattedName: string = formatStringForUrl(hotel.name);
     let hotelUrl: string = `/hotel/${formattedCity}/${formattedName}?`;
 
     // Iterate over searchParams and add each to the URL
@@ -75,6 +82,9 @@ const CityResults = () => {
             src={hotel.image}
             alt={hotel.name}
             className="block w-full h-58 lg:h-52 object-cover rounded-t-md sm:rounded-t-none sm:rounded-l-md"
+            width={739}
+            height={493}
+            sizes={"(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
           />
           <div className="flex flex-col justify-between gap-2 sm:pr-1">
             <div className="px-2 sm:px-0 sm:pt-2">
