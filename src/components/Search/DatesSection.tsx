@@ -66,10 +66,9 @@ const DatesSection = ({
   const generatePseudoLabel = (): string => {
     // Return empty string if dates are not provided
     if (!checkInDate || !checkOutDate) return "";
-
     // Calculate the number of nights between check-in and check-out dates
     const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
-    const numOfNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const numOfNights = Math.ceil(timeDiff / (1000 * 3600 * 24)) - 1;
 
     // Format the number of nights for display
     const numOfNightsCopy = `(${numOfNights} night${

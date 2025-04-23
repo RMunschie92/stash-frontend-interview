@@ -103,6 +103,10 @@ const Search = ({
     const nextSunday: Date = new Date(nextFriday);
     nextSunday.setDate(nextFriday.getDate() + 2); // Set to Sunday (2 days after Friday)
 
+    // Set check in date to 0 hours on Friday and check out date to 23:59:59 on Sunday
+    nextFriday.setHours(0, 0, 0, 0); // Set to start of day
+    nextSunday.setHours(23, 59, 59); // Set to end of day
+
     setCheckInDate(nextFriday);
     setCheckOutDate(nextSunday);
   }, []);
@@ -165,15 +169,6 @@ const Search = ({
       return;
     }
 
-    // If user select a hotel, redirect to the microsite for that hotel
-    if (searchHotelSelection) {
-      const { city, name } = searchHotelSelection;
-      // Redirect to the microsite for the selected hotel
-      // "hotel/:city/:hotelName"
-      window.location.href = `/hotel/${city}/${name.replace(/\s/g, "-")}`;
-      return;
-    }
-
     // Format check in and check out dates to be MM-DD-YYYY
     let formattedCheckIn: string = formatDate(checkInDate, true);
     let formattedCheckOut: string = formatDate(checkOutDate, true);
@@ -181,8 +176,18 @@ const Search = ({
     formattedCheckIn = formattedCheckIn.replace(/\s/g, "-").replace(/,/g, "");
     formattedCheckOut = formattedCheckOut.replace(/\s/g, "-").replace(/,/g, "");
 
+    // If user select a hotel, redirect to the microsite for that hotel
+    if (searchHotelSelection) {
+      const { city, name } = searchHotelSelection;
+      const formattedName: string = name.replace(/\s/g, "-").replace(/,/g, "");
+      // Redirect to the microsite for the selected hotel
+      // "hotel/:city/:hotelName?:checkin&:checkout&:adults&:children"
+      window.location.href = `/hotel/${city}/${formattedName}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
+      return;
+    }
+
     // Otherwise, redirect to the city results page
-    // "travel/:city/:adults/:children",
+    // "travel/:city?:checkin&:checkout&:adults&:children",
     window.location.href = `/travel/${searchCitySelection}?checkin=${formattedCheckIn}&checkout=${formattedCheckOut}&adults=${adultsCount}&children=${childrenCount}`;
   };
 
@@ -255,11 +260,20 @@ const Search = ({
   const handleDateChange = (
     dates: ValuePiece | [ValuePiece, ValuePiece]
   ): void => {
-    if (!Array.isArray(dates) || dates.length !== 2) {
+    // If dates is not an array of two dates, return early
+    if (!Array.isArray(dates) || dates.length !== 2 || !dates[0] || !dates[1]) {
       return;
     }
 
-    console.log(dates);
+    // Determine if user selected the same date for check-in and check-out
+    const datesAreTheSame: boolean =
+      dates[0].toLocaleDateString() === dates[1].toLocaleDateString();
+
+    // If dates are the same, add one day to checkout date
+    if (datesAreTheSame) {
+      dates[1] = new Date(dates[1]);
+      dates[1].setDate(dates[1].getDate() + 1);
+    }
 
     setCheckInDate(dates[0]);
     setCheckOutDate(dates[1]);
