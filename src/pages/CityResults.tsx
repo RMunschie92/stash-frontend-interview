@@ -14,7 +14,7 @@ import PageTitle from "../components/PageTitle/PageTitle";
 import Search from "../components/Search/Search";
 
 // Types
-import { Hotel, ValuePiece } from "../types";
+import { Hotel } from "../types";
 
 //------------------------------------------------------------------------------
 // Component
@@ -27,32 +27,8 @@ const CityResults = () => {
   const location = useLocation();
   const city = location.pathname.split("/").pop();
 
+  // Get search parameters from the URL
   const [searchParams] = useSearchParams();
-
-  /**
-   * @function convertToDate
-   * @description Converts a string value to a Date object or returns null if the value is invalid
-   * @param {string | null} value - The string value to convert to a Date object
-   * @returns {ValuePiece} - Returns a Date object if valid, otherwise returns null
-   */
-  const convertToDate = (
-    value: string | null,
-    isCheckout: boolean = false
-  ): ValuePiece => {
-    if (!value) return null;
-
-    const date = new Date(value);
-    if (isNaN(date.getTime())) {
-      return null; // Invalid date
-    }
-
-    // Set to 23:59:59 for checkout dates
-    if (isCheckout) {
-      date.setHours(23, 59, 59);
-    }
-
-    return date;
-  };
 
   /**
    * @function generateListItem
@@ -75,11 +51,19 @@ const CityResults = () => {
       dailyRateClass += " text-sm line-through";
     }
 
-    // Construct URL to hotel's microsite page ("hotel/:city/:hotelName")
-    const hotelUrl: string = `/hotel/${hotel.city.replace(
-      /\s/g,
-      "-"
-    )}/${hotel.name.replace(/\s/g, "-")}`;
+    // Construct URL to hotel's microsite page
+    // "hotel/:city/:hotelName?:checkin&:checkout&:adults&:children"
+    const formattedCity = hotel.city.replace(/\s/g, "-").replace(/,/g, "");
+    const formattedName = hotel.name.replace(/\s/g, "-").replace(/,/g, "");
+    let hotelUrl: string = `/hotel/${formattedCity}/${formattedName}?`;
+
+    // Iterate over searchParams and add each to the URL
+    for (const param of searchParams.entries()) {
+      const [key, value] = param;
+      if (value) {
+        hotelUrl += `${key}=${value}&`;
+      }
+    }
 
     return (
       <li key={hotel.id}>
@@ -111,31 +95,10 @@ const CityResults = () => {
     );
   };
 
-  // Get & convert values via searchParams
-  const searchCheckIn: ValuePiece | null = convertToDate(
-    searchParams.get("checkin")
-  );
-  const searchCheckOut: ValuePiece | null = convertToDate(
-    searchParams.get("checkout"),
-    true
-  );
-  const searchAdults: number = searchParams.has("adults")
-    ? Number(searchParams.get("adults"))
-    : 1;
-  const searchChildren: number = searchParams.has("children")
-    ? Number(searchParams.get("children"))
-    : 0;
-
   return (
     <>
       <PageTitle title={`Hotels in ${city}`} />
-      <Search
-        initialCityValue={city}
-        initialAdultsCount={searchAdults}
-        initialChildrenCount={searchChildren}
-        initialCheckInDate={searchCheckIn}
-        initialCheckOutDate={searchCheckOut}
-      />
+      <Search />
 
       <h1 className="text-2xl font-light mb-2">
         The Best Independent Hotels in{" "}

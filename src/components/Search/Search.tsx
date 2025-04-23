@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 // Libraries
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 
 // Components
 import CalendarInput from "./CalendarInput";
@@ -19,18 +19,11 @@ import { Hotel, ValuePiece } from "../../types";
 
 // Utils
 import formatDate from "../../utils/formatDate";
+import extractParams from "../../utils/extractParams";
 
 //------------------------------------------------------------------------------
 // Local Types & Interfaces
 //------------------------------------------------------------------------------
-type SearchProps = {
-  initialCityValue?: string;
-  initialCheckInDate?: ValuePiece;
-  initialCheckOutDate?: ValuePiece;
-  initialAdultsCount?: number;
-  initialChildrenCount?: number;
-};
-
 type CityData = {
   name: string;
   lowerCase: string;
@@ -44,13 +37,7 @@ type CityData = {
  * @description A component that renders a search form for hotels, including destination input, date selection, and travelers section.
  * @returns {React.JSX.Element} - Returns the search form with inputs and results.
  */
-const Search = ({
-  initialCityValue,
-  initialCheckInDate,
-  initialCheckOutDate,
-  initialAdultsCount,
-  initialChildrenCount,
-}: SearchProps): React.JSX.Element => {
+const Search = (): React.JSX.Element => {
   // Get context data
   const hotelData = useOutletContext<Hotel[]>();
 
@@ -86,73 +73,52 @@ const Search = ({
   const searchErrorRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const [searchParams] = useSearchParams();
+
   /**
    * Executes on component mount to set initial state values.
    * - It sets the `isFirstRender` state to false after the initial render.
-   * - It calculates the next Friday and Sunday dates for `checkInDate` and `checkOutDate` respectively.
    */
   useEffect(() => {
     // Flip `isFirstRender` state flag
     setIsFirstRender(false);
-
-    // Get date of upcoming Friday
-    const today: Date = new Date();
-    const nextFriday: Date = new Date(today);
-    nextFriday.setDate(today.getDate() + ((5 - today.getDay() + 7) % 7)); // 5 is Friday, adjust to next Friday if today is not Friday
-
-    const nextSunday: Date = new Date(nextFriday);
-    nextSunday.setDate(nextFriday.getDate() + 2); // Set to Sunday (2 days after Friday)
-
-    // Set check in date to 0 hours on Friday and check out date to 23:59:59 on Sunday
-    nextFriday.setHours(0, 0, 0, 0); // Set to start of day
-    nextSunday.setHours(23, 59, 59); // Set to end of day
-
-    setCheckInDate(nextFriday);
-    setCheckOutDate(nextSunday);
   }, []);
 
-  /**
-   * Executes a side effect when the `initialCityValue` prop changes or on the first render.
-   * - If `initialCityValue` is provided and it's the first render, it sets the search input and city selection.
-   * - This is useful for pre-filling the search input with a city value when the component is first rendered.
-   */
   useEffect(() => {
-    const setInitialValues = () => {
-      if (initialCityValue) {
-        // If initial city value is provided, set it as the search input
-        setSearchInput(initialCityValue);
-        setSearchCitySelection(initialCityValue);
-      }
-
-      if (initialCheckInDate) {
-        // If initial check-in date is provided, set it
-        setCheckInDate(initialCheckInDate);
-      }
-      if (initialCheckOutDate) {
-        // If initial check-out date is provided, set it
-        setCheckOutDate(initialCheckOutDate);
-      }
-      if (initialAdultsCount) {
-        // If initial adults count is provided, set it
-        setAdultsCount(initialAdultsCount);
-      }
-      if (initialChildrenCount) {
-        // If initial children count is provided, set it
-        setChildrenCount(initialChildrenCount);
-      }
-    };
-
+    // If this is the first render, set initial values based on parsedParams
     if (isFirstRender) {
-      setInitialValues();
+      const viaParams = extractParams(searchParams);
+      console.log(viaParams);
+
+      if (viaParams.pathCity) {
+        setSearchInput(viaParams.pathCity);
+        setSearchCitySelection(viaParams.pathCity);
+      }
+
+      if (viaParams.pathHotelName) {
+        // If a hotel name is provided, set the search input to the hotel name
+        setSearchInput(viaParams.pathHotelName.replace(/-/g, " "));
+        // Find the hotel in the hotel data
+        const selectedHotel: Hotel | undefined = hotelData.find(
+          (hotel: Hotel) =>
+            viaParams.pathHotelName &&
+            hotel.name.toLowerCase() === viaParams.pathHotelName.toLowerCase()
+        );
+        // If the hotel is found, set it as the selected hotel
+        if (selectedHotel) {
+          setSearchHotelSelection(selectedHotel);
+        }
+      }
+
+      // Note that default values are set in extractParams util in the event
+      // that no search params are provided for check-in, check-out, adults, or children
+      // (most crucial for check-in and check-out dates)
+      setCheckInDate(viaParams.searchCheckIn);
+      setCheckOutDate(viaParams.searchCheckOut);
+      setAdultsCount(viaParams.searchAdults);
+      setChildrenCount(viaParams.searchChildren);
     }
-  }, [
-    initialCityValue,
-    isFirstRender,
-    initialAdultsCount,
-    initialCheckInDate,
-    initialCheckOutDate,
-    initialChildrenCount,
-  ]);
+  }, [hotelData, isFirstRender, searchParams]);
 
   /**
    * @function handleSubmit
