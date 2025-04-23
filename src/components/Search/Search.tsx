@@ -23,6 +23,14 @@ import formatDate from "../../utils/formatDate";
 //------------------------------------------------------------------------------
 // Local Types & Interfaces
 //------------------------------------------------------------------------------
+type SearchProps = {
+  initialCityValue?: string;
+  initialCheckInDate?: ValuePiece;
+  initialCheckOutDate?: ValuePiece;
+  initialAdultsCount?: number;
+  initialChildrenCount?: number;
+};
+
 type CityData = {
   name: string;
   lowerCase: string;
@@ -36,7 +44,13 @@ type CityData = {
  * @description A component that renders a search form for hotels, including destination input, date selection, and travelers section.
  * @returns {React.JSX.Element} - Returns the search form with inputs and results.
  */
-const Search = (): React.JSX.Element => {
+const Search = ({
+  initialCityValue,
+  initialCheckInDate,
+  initialCheckOutDate,
+  initialAdultsCount,
+  initialChildrenCount,
+}: SearchProps): React.JSX.Element => {
   // Get context data
   const hotelData = useOutletContext<Hotel[]>();
 
@@ -55,6 +69,7 @@ const Search = (): React.JSX.Element => {
   const [citySearchMatches, setCitySearchMatches] = useState<CityData[]>([]);
   const [forceSearchResultsClosed, setForceSearchResultsClosed] =
     useState<boolean>(false);
+  const [isFirstRender, setIsFirstRender] = useState<boolean>(true);
   const [searchResults, setSearchResults] = useState<Hotel[]>([]);
   const [searchHotelSelection, setSearchHotelSelection] =
     useState<Hotel | null>(null);
@@ -72,11 +87,14 @@ const Search = (): React.JSX.Element => {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * Side effect:
-   * @description Initializes the check-in and check-out dates to the next Friday and Sunday respectively.
-   * - This effect runs once when the component mounts.
+   * Executes on component mount to set initial state values.
+   * - It sets the `isFirstRender` state to false after the initial render.
+   * - It calculates the next Friday and Sunday dates for `checkInDate` and `checkOutDate` respectively.
    */
   useEffect(() => {
+    // Flip `isFirstRender` state flag
+    setIsFirstRender(false);
+
     // Get date of upcoming Friday
     const today: Date = new Date();
     const nextFriday: Date = new Date(today);
@@ -88,6 +106,49 @@ const Search = (): React.JSX.Element => {
     setCheckInDate(nextFriday);
     setCheckOutDate(nextSunday);
   }, []);
+
+  /**
+   * Executes a side effect when the `initialCityValue` prop changes or on the first render.
+   * - If `initialCityValue` is provided and it's the first render, it sets the search input and city selection.
+   * - This is useful for pre-filling the search input with a city value when the component is first rendered.
+   */
+  useEffect(() => {
+    const setInitialValues = () => {
+      if (initialCityValue) {
+        // If initial city value is provided, set it as the search input
+        setSearchInput(initialCityValue);
+        setSearchCitySelection(initialCityValue);
+      }
+
+      if (initialCheckInDate) {
+        // If initial check-in date is provided, set it
+        setCheckInDate(initialCheckInDate);
+      }
+      if (initialCheckOutDate) {
+        // If initial check-out date is provided, set it
+        setCheckOutDate(initialCheckOutDate);
+      }
+      if (initialAdultsCount) {
+        // If initial adults count is provided, set it
+        setAdultsCount(initialAdultsCount);
+      }
+      if (initialChildrenCount) {
+        // If initial children count is provided, set it
+        setChildrenCount(initialChildrenCount);
+      }
+    };
+
+    if (isFirstRender) {
+      setInitialValues();
+    }
+  }, [
+    initialCityValue,
+    isFirstRender,
+    initialAdultsCount,
+    initialCheckInDate,
+    initialCheckOutDate,
+    initialChildrenCount,
+  ]);
 
   /**
    * @function handleSubmit
@@ -197,6 +258,8 @@ const Search = (): React.JSX.Element => {
     if (!Array.isArray(dates) || dates.length !== 2) {
       return;
     }
+
+    console.log(dates);
 
     setCheckInDate(dates[0]);
     setCheckOutDate(dates[1]);
