@@ -109,7 +109,10 @@ const MicrositeLayout = (): React.JSX.Element => {
     const count: number = index % 2 === 0 ? 1 : 2;
 
     return (
-      <section className={index !== 0 ? "mt-4" : ""}>
+      <section
+        key={`placeholder-section-${index}`}
+        className={index !== 0 ? "mt-4" : ""}
+      >
         <h2 className="text-xl mb-2 text-orange-600 font-semibold">
           Lorem ipsum dolor sit amet
         </h2>
