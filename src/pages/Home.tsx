@@ -12,7 +12,7 @@ import Search from "../components/Search/Search";
 import { Hotel } from "../types";
 
 // Utils
-import convertToSnakeCase from "../utils/convertToSnakeCase";
+import convertToKebabCase from "../utils/convertToKebabCase";
 
 //------------------------------------------------------------------------------
 // Component
@@ -69,12 +69,12 @@ const Index = () => {
           {Object.entries(sortedByCity).map(([city, hotels]) => (
             <li key={city}>
               <h3
-                id={`${convertToSnakeCase(city)}-list-heading`}
+                id={`${convertToKebabCase(city)}-list-heading`}
                 className="text-xl mb-1 font-semibold text-orange-600"
               >
                 {city}
               </h3>
-              <ul aria-labelledby={`${convertToSnakeCase(city)}-list-heading`}>
+              <ul aria-labelledby={`${convertToKebabCase(city)}-list-heading`}>
                 {hotels.map((hotel) => (
                   <li key={hotel.id} className="not-last:mb-2">
                     <a
