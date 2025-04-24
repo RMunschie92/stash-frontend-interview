@@ -63,7 +63,7 @@ const MicrositeLayout = (): React.JSX.Element => {
    */
   const generatePrice = (): React.JSX.Element => {
     let dailyRateEl: React.JSX.Element | null = null;
-    let dailyRateClass: string = "text-gray-700 mt-auto semibold";
+    let dailyRateClass: string = "text-gray-700 mt-auto font-semibold";
 
     if (hotelInfo.has_member_rate) {
       dailyRateEl = (
@@ -110,7 +110,7 @@ const MicrositeLayout = (): React.JSX.Element => {
 
     return (
       <section className={index !== 0 ? "mt-4" : ""}>
-        <h2 className="text-xl mb-2 text-orange-600">
+        <h2 className="text-xl mb-2 text-orange-600 font-semibold">
           Lorem ipsum dolor sit amet
         </h2>
         {Array.from({ length: count }, (_, i) => (
