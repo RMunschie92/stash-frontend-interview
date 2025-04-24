@@ -88,7 +88,7 @@ const TravelersSection = ({
     return (
       <button
         type="button"
-        className={`flex justify-center items-center bg-indigo-600 text-white rounded-md size-8 ${orderClassVal} hover:bg-indigo-500 transition-colors duration-300 disabled:bg-gray-400`}
+        className={`flex justify-center items-center bg-sky-600 text-white rounded-md size-8 ${orderClassVal} hover:bg-sky-500 transition-colors duration-300 disabled:bg-gray-400`}
         onClick={() => setter(newCount)}
         aria-label={ariaLabel}
         disabled={disabled}

@@ -466,7 +466,7 @@ const Search = (): React.JSX.Element => {
       />
 
       <button
-        className="h-12.5 w-full bg-indigo-600 rounded p-2 font-white text-white hover:bg-indigo-500 transition-colors duration-300"
+        className="h-12.5 w-full bg-sky-600 rounded p-2 font-white text-white hover:bg-sky-500 transition-colors duration-300"
         type="submit"
         onClick={(event) => handleSubmit(event)}
       >
