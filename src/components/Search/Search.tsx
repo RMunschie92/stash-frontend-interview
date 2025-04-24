@@ -408,6 +408,7 @@ const Search = (): React.JSX.Element => {
           Search for a hotel or city
         </label>
         <input
+          id="search-input"
           className="border border-gray-400 placeholder-black rounded-md p-2 w-full h-12.5"
           type="text"
           placeholder="Destination..."
