@@ -76,7 +76,7 @@ const CityResults = () => {
       <li key={hotel.id}>
         <a
           href={hotelUrl}
-          className="flex flex-col sm:grid grid-cols-[1fr_2fr] mb-4 gap-2 sm:gap-3 border border-gray-300 rounded-lg"
+          className="flex flex-col sm:grid grid-cols-[1fr_2fr] mb-4 gap-2 sm:gap-3 border border-gray-300 rounded-lg hover:shadow-lg transition-shadow duration-300 sm:rounded-md sm:hover:rounded-lg sm:hover:shadow-md sm:overflow-hidden"
         >
           <img
             src={hotel.image}
@@ -105,6 +105,27 @@ const CityResults = () => {
     );
   };
 
+  // Filter hotels based on the city
+  const hotelsInCity = hotelData.filter((hotel: Hotel) => hotel.city === city);
+
+  // If no hotels are found in the city, display a message
+  // and a search component
+  if (hotelsInCity.length === 0) {
+    return (
+      <>
+        <PageTitle title={`No Hotels Found in ${city}`} />
+        <Search />
+        <h1 className="text-2xl font-light mb-2">
+          No Hotels Found in{" "}
+          <span className="font-bold text-orange-600">{city}</span>
+        </h1>
+        <p className="text-xl font-light">
+          We couldn't find any hotels in this city. Please try a different city.
+        </p>
+      </>
+    );
+  }
+
   return (
     <>
       <PageTitle title={`Hotels in ${city}`} />
@@ -119,13 +140,21 @@ const CityResults = () => {
         Earn the most points at the best independent hotels
       </p>
 
-      <ul className="flex flex-col sm:grid grid-cols-1 gap-4 mt-4">
-        {hotelData.map((hotel: Hotel) => {
-          if (city === hotel.city) {
-            return generateListItem(hotel);
+      <section>
+        <h2 id="hotel-count" className="text-xl font-semibold mt-4">
+          {`${hotelsInCity.length} ${
+            hotelsInCity.length > 1 ? "hotels" : "hotel"
           }
-        })}
-      </ul>
+          found`}
+        </h2>
+
+        <ul
+          aria-labelledby="hotel-count"
+          className="flex flex-col sm:grid grid-cols-1 gap-4 mt-4"
+        >
+          {hotelsInCity.map((hotel: Hotel) => generateListItem(hotel))}
+        </ul>
+      </section>
     </>
   );
 };
