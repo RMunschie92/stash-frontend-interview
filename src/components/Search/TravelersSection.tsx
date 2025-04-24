@@ -179,7 +179,19 @@ const TravelersSection = ({
 
   return (
     <div className="relative">
-      <label className="absolute text-xs top-1 left-2">Travelers</label>
+      <label
+        className="absolute text-xs top-1 left-2"
+        htmlFor="travelers-input"
+      >
+        Travelers
+      </label>
+      <input
+        id="travelers-input"
+        type="text"
+        value={generateSpanCountText()}
+        readOnly
+        className="sr-only"
+      />
       <button
         type="button"
         className="border border-gray-400 rounded-md p-2 pt-4.25 h-12.5 w-full cursor-pointer"
