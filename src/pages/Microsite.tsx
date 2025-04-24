@@ -3,7 +3,11 @@
 //------------------------------------------------------------------------------
 // Libraries
 import React from "react";
-import { useLocation, useOutletContext } from "react-router-dom";
+import {
+  useLocation,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
 
 // Components
 import PageTitle from "../components/PageTitle/PageTitle";
@@ -28,6 +32,9 @@ import formatStringForUrl from "../utils/formatStringForUrl";
 const MicrositeLayout = (): React.JSX.Element => {
   // Get context data
   const hotelData: Hotel[] = useOutletContext<Hotel[]>();
+
+  // Get search parameters from the URL
+  const [searchParams] = useSearchParams();
 
   // Get the current location and extract the city from the URL
   const location = useLocation();
@@ -123,6 +130,28 @@ const MicrositeLayout = (): React.JSX.Element => {
     );
   };
 
+  /**
+   * @function generateCityUrl
+   * @description Generates the URL to the hotel's microsite page based on the city and search parameters.
+   * @returns {string} - URL to the hotel's microsite page
+   */
+  const generateCityUrl = (): string => {
+    // Construct URL to hotel's microsite page
+    // "hotel/:city/:hotelName?:checkin&:checkout&:adults&:children"
+    const formattedCity: string = formatStringForUrl(hotelInfo.city);
+    let cityUrl: string = `/travel/${formattedCity}?`;
+
+    // Iterate over searchParams and add each to the URL
+    for (const param of searchParams.entries()) {
+      const [key, value] = param;
+      if (value) {
+        cityUrl += `${key}=${value}&`;
+      }
+    }
+
+    return cityUrl;
+  };
+
   return (
     <>
       <PageTitle title={`${hotelInfo.name} | ${hotelInfo.city}`} />
@@ -131,7 +160,12 @@ const MicrositeLayout = (): React.JSX.Element => {
       <h1 className="text-3xl text-orange-600 font-semibold">
         {hotelInfo.name}
       </h1>
-      <p className="text-xl mt-2">{hotelInfo.city}</p>
+      <a
+        href={generateCityUrl()}
+        className="text-xl mt-2 text-sky-600 hover:text-sky-800 transition:color duration-300"
+      >
+        {hotelInfo.city}
+      </a>
       <img
         className="rounded-lg mt-4"
         src={hotelInfo.image}
